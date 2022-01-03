@@ -12,6 +12,8 @@ mod syscall;
 mod trap;
 mod batch;
 mod sync;
+mod logger;
+use log::{debug, info, error, warn, trace};
 
 global_asm!(include_str!("entry.asm"));
 global_asm!(include_str!("link_app.S"));
@@ -31,7 +33,33 @@ fn clear_bss() {
 
 #[no_mangle]
 pub fn rust_main() -> ! {
+    extern "C" {
+        fn stext();
+        fn etext();
+        fn srodata();
+        fn erodata();
+        fn sdata();
+        fn edata();
+        fn boot_stack();
+        fn boot_stack_top();
+        fn sbss();
+        fn ebss();
+    }
     clear_bss();
+    logger::init();
+    debug!("Hello, world!");
+    info!("Hello, world!");
+    warn!("Hello, world!");
+    error!("Hello, world!");
+    trace!("Hello, world!");
+    info!(".text [{:#x}, {:#x})", stext as usize, etext as usize);
+    info!(".rodata [{:#x}, {:#x})", srodata as usize, erodata as usize);
+    info!(".data [{:#x}, {:#x})", sdata as usize, edata as usize);
+    info!(
+        "boot_stack [{:#x}, {:#x})",
+        boot_stack as usize, boot_stack_top as usize
+    );
+    info!(".bss [{:#x}, {:#x})", sbss as usize, ebss as usize);
     println!("[kernel] Hello, world!");
     trap::init();
     batch::init();
