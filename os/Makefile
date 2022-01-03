@@ -56,7 +56,6 @@ kernel:
 	@cargo build --release
 	@rm src/linker.ld
 
-
 clean:
 	@cargo clean
 

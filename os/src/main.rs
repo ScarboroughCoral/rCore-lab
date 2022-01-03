@@ -4,6 +4,9 @@
 #![feature(asm)]
 #![feature(panic_info_message)]
 
+use log::{debug, info, error, warn, trace};
+
+
 #[macro_use]
 mod console;
 mod lang_items;
@@ -14,6 +17,7 @@ mod batch;
 mod sync;
 mod logger;
 use log::{debug, info, error, warn, trace};
+mod logger;
 
 global_asm!(include_str!("entry.asm"));
 global_asm!(include_str!("link_app.S"));
@@ -64,4 +68,5 @@ pub fn rust_main() -> ! {
     trap::init();
     batch::init();
     batch::run_next_app();
+    panic!("Shutdown machine!");
 }
