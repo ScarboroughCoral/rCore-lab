@@ -2,7 +2,7 @@ use lazy_static::*;
 use crate::trap::TrapContext;
 use crate::sync::UPSafeCell;
 
-const USER_STACK_SIZE: usize = 4096 * 2;
+const USER_STACK_SIZE: usize = 4096;
 const KERNEL_STACK_SIZE: usize = 4096 * 2;
 const MAX_APP_NUM: usize = 16;
 const APP_BASE_ADDRESS: usize = 0x80400000;
@@ -77,6 +77,12 @@ impl AppManager {
 
     pub fn get_current_app(&self) -> usize { self.current_app }
 
+    pub fn get_current_app_data_scope(&self) -> (usize, usize) {
+        // 因为程序运行前就已经初始化好了下一个app的状态，因此需要获取上一个app才是当前的app
+        let current_app_data_len = self.app_start[self.current_app] - self.app_start[self.current_app - 1];
+        (APP_BASE_ADDRESS, APP_BASE_ADDRESS + current_app_data_len)
+    }
+
     pub fn move_to_next_app(&mut self) {
         self.current_app += 1;
     }
@@ -125,4 +131,14 @@ pub fn run_next_app() -> ! {
         ) as *const _ as usize);
     }
     panic!("Unreachable in batch::run_current_app!");
+}
+
+pub fn get_current_user_stack_scope() -> (usize, usize) {
+    let higher: usize = USER_STACK.get_sp();
+    (higher -  USER_STACK_SIZE, higher)
+}
+
+
+pub fn get_current_user_data_scope() -> (usize, usize) {
+    APP_MANAGER.exclusive_access().get_current_app_data_scope()
 }
